@@ -1,6 +1,7 @@
 # audioshader
 an audio synthesis library, inspired by glsl, programmed in rust
-####roadmap:
+
+ #### roadmap:
 - [ ] DSL
 - [ ] file watching
 - [ ] loading samples
