@@ -9,23 +9,20 @@ pub struct buffer{
 }
 impl buffer{
     pub fn new(size:usize)->Self{
-        let mut b = buffer{b:vec![],s:size,r:0,w:0};
+        let mut b = buffer{b:vec![],s:size,r:0,w:size};
         for x in 0..size{
             b.b.push(0.0);
         }
         b
     }
-    pub fn nom(&mut self,i:f32){
-        self.b.push(i)
-    }
     pub fn write(&mut self,i:f32){
-        self.b[self.w] = i;
+        self.b[self.w%self.s] = i;
         self.w+=1;
-
     }
     pub fn read(&mut self)->f32{
-        self.r=(self.r+1)%self.s;
-        self.b[self.r-1]
+        let o = self.b[self.r%self.s];
+        self.r+=1;
+        o
     }
 }
 pub fn norm(i:f32)->f32{

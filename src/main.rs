@@ -11,7 +11,7 @@ fn main() {
     let (_str,strh) = OutputStream::try_default().unwrap();
     let sink = Sink::try_new(&strh).unwrap();
     let mut w:Vec<f32>=vec![];
-    let mut b = buffer::new(10000);
+    let mut b = buffer::new(1000);
     macro_rules!dds{($d:expr)=>{($d*16.0*44100.0)as usize};}
     let dur:usize = dds!(0.5);
     for x in 0..dur{
