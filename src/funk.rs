@@ -1,13 +1,15 @@
 #![allow(unused_variables)]
 use rand::{Rng, rngs::ThreadRng};
+use std::f32::consts::TAU as tau;
 pub struct buffer{
     b:Vec<f32>,
+    s:usize,
     r:usize,
     w:usize,
 }
 impl buffer{
     pub fn new(size:usize)->Self{
-        let mut b = buffer{b:vec![],r:0,w:0};
+        let mut b = buffer{b:vec![],s:size,r:0,w:0};
         for x in 0..size{
             b.b.push(0.0);
         }
@@ -16,10 +18,23 @@ impl buffer{
     pub fn nom(&mut self,i:f32){
         self.b.push(i)
     }
+    pub fn write(&mut self,i:f32){
+        self.b[self.w] = i;
+        self.w+=1;
+
+    }
+    pub fn read(&mut self)->f32{
+        self.r=(self.r+1)%self.s;
+        self.b[self.r-1]
+    }
 }
 pub fn norm(i:f32)->f32{
     (i+1.0)/2.0
 }
+pub fn sin(f:f32,t:f32)->f32{
+    (f*tau*t).sin()
+}
+
 pub fn clamp(i:f32,min:f32,max:f32)->f32{
     match i{
         i if i<min=>min,
