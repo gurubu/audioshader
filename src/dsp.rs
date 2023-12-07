@@ -41,11 +41,12 @@ pub fn s(t:f32,d:f32,i:f32,r:&mut ThreadRng,b:&mut Vec<buffer>)->f32{
     //(f*tau*t*(1.0-t/)).sin()
     //let delsin = (((t*tau*0.2).sin()+1.0)/2.0)*1000.0+1.0;
     //let dels2n = (((t*tau*0.4).sin()+1.0)/2.0)* 500.0+40.0;
-    let mut n = 0.0;
-    let mut d = 0.0;
-    n = detns(i as u64)*(-3.0*t).exp()*0.3;
-    d = detns((i-20.0).bound(Some(0.0),None) as u64)*(-3.0*t).exp()*0.3;
-    n+d
+    let n = detns(i)*(-3.0*t).exp()*0.3;
+    let d1= detns(del(i,600.0))*(-3.0*t).exp()*0.3;
+    let d2= detns(del(i,1200.0))*(-3.0*t).exp()*0.3;
+    let d3= detns(del(i,2400.0))*(-3.0*t).exp()*0.3;
+    let d4= detns(del(i,4800.0))*(-3.0*t).exp()*0.3;
+    n+d1+d2+d3+d4
     //b[0].varsize(delsin as usize);
     //b[0].write(n);
     //b[1].varsize(dels2n as usize);

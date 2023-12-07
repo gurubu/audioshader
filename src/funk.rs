@@ -1,4 +1,4 @@
-#![allow(unused_variables)]
+#![allow(unused_variables,unused_assignments)]
 use rand::{Rng, rngs::ThreadRng, SeedableRng};
 use rand_chacha::*;
 use std::f32::consts::TAU as tau;
@@ -10,7 +10,7 @@ impl t{
         (self.t*i).sin()
     }
 }
-pub trait signal<t>;
+pub trait signal<t>{}
 pub struct buffer{
     b:Vec<f32>,
     pub s:usize,
@@ -140,8 +140,8 @@ pub fn noise(r:&mut ThreadRng)->f32{
     let x:f32 = r.gen();
     x
 }
-pub fn detns(s:u64)->f32{
-    let mut x = rand_chacha::ChaCha8Rng::seed_from_u64(s);
+pub fn detns(s:f32)->f32{
+    let mut x = rand_chacha::ChaCha8Rng::seed_from_u64(s as u64);
     let r:f32 = x.gen_range(-1.0..1.0);
     r
 }
@@ -153,9 +153,16 @@ pub fn sampletosec(sample:f32)->f32{
 pub fn sectosample(sec:f32)->f32{
     sec*16.0*44100.0
 }
+pub fn del(i:f32,dur:f32)->f32{
+(i-dur).nlz()
+}
 pub fn vibrato(t:f32,depth:f32,speed:f32)->f32{
     ((t*speed).sin())*depth
 }
+pub trait nlz{fn nlz(self)->Self;}
+impl nlz for f32{fn nlz(self)->Self{
+    if self<0.0{0.0}else{self}
+}}
 pub fn bndz(i:f32)->f32{
     if i<0.0{0.0}else{i}}
 trait boundmin{fn boundmin(self,min:f32)->Self;}
