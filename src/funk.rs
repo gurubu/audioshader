@@ -3,8 +3,14 @@ use rand::{Rng, rngs::ThreadRng, SeedableRng};
 use rand_chacha::*;
 use std::f32::consts::TAU as tau;
 pub struct s{s:f32}
+pub struct sa{sa:Vec<f32>}
 pub struct t{t:f32}
 pub trait sample{}
+impl s{
+    pub fn dlay(self,len:usize)->Self{
+        Self{s:0.0}
+    }
+}
 impl t{
     pub fn sine(self,i:f32)->f32{
         (self.t*i).sin()
@@ -25,25 +31,16 @@ impl buffer{
         }
         b
     }
-    pub fn write(&mut self,i:f32){
+    pub fn wr(&mut self,i:f32){
         self.b[self.w%self.s] = i;
         self.w+=1;
     }
-    pub fn read(&mut self)->f32{
+    pub fn rd(&mut self)->f32{
         let o = self.b[self.r%self.s];
         self.r+=1;
         o
     }
-    pub fn wr(&mut self,i:f32,rngsz:usize){
-        self.b[self.w%rngsz] = i;
-        self.w+=1;
-    }
-    pub fn rd(&mut self,rngsz:usize)->f32{
-        let o = self.b[self.r%rngsz];
-        self.r+=1;
-        o
-    }
-    pub fn varsize(&mut self,news:usize){
+        pub fn varsize(&mut self,news:usize){
         if news ==0{
             self.s=1;
         }
@@ -95,6 +92,11 @@ pub fn limit(i:f32,o:f32)->f32{
         _=>i,
     }
 }
+pub fn limiter(s:f32,maxgain:f32)->f32{
+    if s < -maxgain{println!("{} {}",s,-maxgain);-maxgain}
+    else if s>maxgain{maxgain}
+    else {s}
+}
 pub fn slope(i:f32,x1:f32,x2:f32,y1:f32,y2:f32)->f32{
     if y2-y1 > 0.0 {
         i*((y2-y1)/(x2-x1))
@@ -136,7 +138,7 @@ pub fn tm(min:f32,max:f32,i:f32)->bool{
 pub fn invlrp(min:f32,max:f32,amt:f32)->f32{
     todo!()
 }
-pub fn noise(r:&mut ThreadRng)->f32{
+pub fn noize(r:&mut ThreadRng)->f32{
     let x:f32 = r.gen();
     x
 }
@@ -145,9 +147,36 @@ pub fn detns(s:f32)->f32{
     let r:f32 = x.gen_range(-1.0..1.0);
     r
 }
-
+pub fn noise(t:f32,d:f32,s:f32,a:f32)->f32{
+    if t*44100.0>sectosample(d+s){
+        0.0
+    }
+    else if t*44100.0<sectosample(s){
+        0.0
+    }
+    else{
+        detns(t*44100.0)*a
+    }
+}
+pub fn sine(t:f32,f:f32,d:f32,s:f32,a:f32)->f32{
+    if t*44100.0>sectosample(d+s){
+        0.0
+    }
+    else if t*44100.0<sectosample(s){
+        0.0
+    }
+    else{
+        (tau*t*f).sin()*a
+    }
+}
 pub fn sampletosec(sample:f32)->f32{
     (sample/44100.0)/16.0
+}
+pub fn tri(t:f32,p:f32)->f32{
+    4.0*((p*t-((p*t+0.5).floor())).abs())-1.0
+}
+pub fn xp(r:f32,t:f32)->f32{
+    (-r*t).exp()
 }
 //pub fn delay(i:f32)
 pub fn sectosample(sec:f32)->f32{
@@ -156,6 +185,9 @@ pub fn sectosample(sec:f32)->f32{
 pub fn del(i:f32,dur:f32)->f32{
 (i-dur).nlz()
 }
+pub fn dur(i:f32,dur:f32)->f32{
+  i+sectosample(dur)   
+}
 pub fn vibrato(t:f32,depth:f32,speed:f32)->f32{
     ((t*speed).sin())*depth
 }
@@ -163,6 +195,11 @@ pub trait nlz{fn nlz(self)->Self;}
 impl nlz for f32{fn nlz(self)->Self{
     if self<0.0{0.0}else{self}
 }}
+pub trait nmm{fn nmm(self,max:f32)->Self;}
+impl nmm for f32{fn nmm(self,max:f32)->Self{
+    if self>max{0.0}
+    else{max}
+    }}
 pub fn bndz(i:f32)->f32{
     if i<0.0{0.0}else{i}}
 trait boundmin{fn boundmin(self,min:f32)->Self;}

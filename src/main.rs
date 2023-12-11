@@ -16,17 +16,18 @@ fn main() {
     let mut rngsd = rand_chacha::ChaCha8Rng::seed_from_u64(0);
     let (_str,strh) = OutputStream::try_default().unwrap();
     let sink = Sink::try_new(&strh).unwrap();
-    let mut w:Vec<f32>=vec![];
-    macro_rules!dds{($d:expr)=>{($d*bit*sff)as usize};}
-    let dur:usize = dds!(0.5);
-    let mut bv:Vec<buffer>=vec![];
-    bv.push(buffer::new(dur, 50));
-    bv.push(buffer::new(dur,100));
-    for x in 0..dur{
-        let xf = x as f32;
-        w.push(s(xf/sff,dur as f32,x as f32,&mut rng,&mut bv));
-    }
-    let s = SamplesBuffer::new(1,sff as u32,w);
+    // let mut w:Vec<f32>=vec![];
+    // macro_rules!dds{($d:expr)=>{($d*bit*sff)as usize};}
+    // let dur:usize = dds!(0.5);
+    // let mut bv:Vec<buffer>=vec![];
+    // bv.push(buffer::new(dur,5000));
+    // bv.push(buffer::new(dur,100));
+    // for x in 0..dur{
+    //     let xf = x as f32;
+    //     w.push(s(xf/sff,dur as f32,x as f32,&mut rng,&mut bv));
+    // }
+    let r = a();
+    let s = SamplesBuffer::new(1,sff as u32,r);
     sink.append(s);
     sink.sleep_until_end();
 }
