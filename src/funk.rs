@@ -4,18 +4,18 @@ use rand_chacha::*;
 use std::f32::consts::TAU as tau;
 pub struct s{s:f32}
 pub struct sa{sa:Vec<f32>}
-pub struct t{t:f32}
+// pub struct t{t:f32}
 pub trait sample{}
-impl s{
-    pub fn dlay(self,len:usize)->Self{
-        Self{s:0.0}
-    }
-}
-impl t{
-    pub fn sine(self,i:f32)->f32{
-        (self.t*i).sin()
-    }
-}
+// impl s{
+//     pub fn dlay(self,len:usize)->Self{
+//         Self{s:0.0}
+//     }
+// }
+// impl t{
+//     pub fn sine(self,i:f32)->f32{
+//         (self.t*i).sin()
+//     }
+// }
 pub trait signal<t>{}
 pub struct buffer{
     b:Vec<f32>,

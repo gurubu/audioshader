@@ -12,8 +12,10 @@ pub fn fm(t: f32, fc: f32, fm: f32) -> f32 {
 }
 pub fn ks(t:f32,b1:&mut buffer,b2:&mut buffer){
         let s1 = noise(t,0.001,0.0,0.3)+b2.rd();
+    //delay
         b1.wr(s1*0.99);
         let d1 = b1.rd();
+    //filter
         b2.wr(d1);
 }
 pub fn initreverb(dur:usize)->Vec<buffer>{
@@ -61,13 +63,27 @@ pub fn a() -> Vec<f32> {
     let dur = sectosample(0.5) as usize;
     let mut r1 = initrvrb8(dur);
     let mut rv = 0.0;
+    let mut fil= buffer::new(dur,5);
+    let mut del= buffer::new(dur,400);
+    let mut d2l= buffer::new(dur,400);
     for x in 0..dur {
         let i = x as f32;
         let s = 44100.0;
         let t = i/s;
-        //let f1 = fm(t,1.0,220.0)*0.9;
-        let f1 = noise(t,0.01,0.0,0.3)+rv;
-        rv = rvrb8(&mut r1,f1);
+        let fd = del.rd();
+        let f2 = d2l.rd();
+        let fi = fil.rd();
+        // let c = xp(0.2,t)*400.0+2.0;
+        // let c = tri(t,20.0)*10.0+1.0;
+        let c = (0.5*t*tau).sin()*20.0+1.0;
+        let d = (0.7*t*tau).sin()*10.0+0.5;
+        // let f1 = noise(t,0.04,0.0,0.3)*xp(7.0,t%2.0)+fd;
+        let f1 = fm(t,1.0,440.0)*0.1+(fd+f2)*0.5;
+        del.varsize(c as usize);
+        del.wr(f1*0.99);
+        del.varsize(d as usize);
+        d2l.wr(f1*0.99);
+        // fil.wr(fd);
         v.push(f1);
     }
     v
