@@ -3,12 +3,55 @@ use crate::fsf;
 use crate::funk::*;
 use rand::rngs::ThreadRng;
 use std::f32::consts::TAU as tau;
-pub fn sp(t: f32, f: f32) -> f32 {
-    (f * tau * t).sin() * (-3.0 * t).exp()
+pub struct rvrb8{
+    d1:buffer,
+    f1:buffer,
+    d2:buffer,
+    f2:buffer,
+    d3:buffer,
+    f3:buffer,
+    d4:buffer,
+    f4:buffer,
+    d5:buffer,
+    f5:buffer,
+    d6:buffer,
+    f6:buffer,
+    d7:buffer,
+    f7:buffer,
+    d8:buffer,
+    f8:buffer,
 }
-pub fn fm(t: f32, fc: f32, fm: f32) -> f32 {
-    (fc * tau * t + 1.0 * ((fc * fm * tau * t).sin() * (-1.0 * (t)).exp())).sin()
-        * (-2.0 * (t)).exp()
+
+impl rvrb8{
+    pub fn new(dur:usize)->Self{
+      let mut f1 = buffer::new(dur,1);
+      let mut d1 = buffer::new(dur,1000);
+      let mut f2 = buffer::new(dur,2);
+      let mut d2 = buffer::new(dur,2000);
+      let mut f3 = buffer::new(dur,3);
+      let mut d3 = buffer::new(dur,4000);
+      let mut f4 = buffer::new(dur,4);
+      let mut d4 = buffer::new(dur,8000);
+      let mut f5 = buffer::new(dur,1);
+      let mut d5 = buffer::new(dur,16000);
+      let mut f6 = buffer::new(dur,2);
+      let mut d6 = buffer::new(dur,32000);
+      let mut f7 = buffer::new(dur,3);
+      let mut d7 = buffer::new(dur,64000);
+      let mut f8 = buffer::new(dur,4);
+      let mut d8 = buffer::new(dur,128000);
+      rvrb8{d1,f1,d2,f2,d3,f3,d4,f4,d5,f5,d6,f6,d7,f7,d8,f8}
+    }
+    pub fn write(&mut self,i:f32){
+      self.d1.wr(i*0.9);
+      self.f1.wr(self.d1.rd());
+    }
+}
+pub fn sp(t:f32,f:f32)->f32{
+    (f*tau*t).sin()*(-3.0*t).exp()
+}
+pub fn fm(t:f32,fc:f32,fm:f32)->f32{
+    (fc*tau*t+1.0*((fc*fm*tau*t).sin())).sin()
 }
 pub fn ks(t:f32,b1:&mut buffer,b2:&mut buffer){
         let s1 = noise(t,0.001,0.0,0.3)+b2.rd();
@@ -19,6 +62,7 @@ pub fn ks(t:f32,b1:&mut buffer,b2:&mut buffer){
         b2.wr(d1);
 }
 pub fn initreverb(dur:usize)->Vec<buffer>{
+    let mut bv:Vec<buffer> = vec![];
     let mut bv:Vec<buffer> = vec![];
     bv.push(buffer::new(dur,10));
     bv.push(buffer::new(dur,20));
@@ -31,21 +75,22 @@ pub fn initreverb(dur:usize)->Vec<buffer>{
 pub fn initrvrb8(dur:usize)->[buffer;8]{
     let mut rarr:[buffer;8]=[buffer::new(dur,10),buffer::new(dur,10),buffer::new(dur,10),buffer::new(dur,10),
                              buffer::new(dur,10),buffer::new(dur,10),buffer::new(dur,10),buffer::new(dur,10)];
-
+    let mut filr:[buffer;8]=[buffer::new(dur,10),buffer::new(dur,10),buffer::new(dur,10),buffer::new(dur,10),
+                             buffer::new(dur,10),buffer::new(dur,10),buffer::new(dur,10),buffer::new(dur,10)];
     let mut rat = 10;
     for x in 0..8{
         rarr[x].varsize(rat+rat*x);
     }
     rarr
 }
-pub fn rvrb8(barr:&mut[buffer;8],s:f32)->f32{
-    let mut res = 0.0;  
-    for x in 0..8{
-        barr[x].wr(s*0.9);
-        res += barr[x].rd();
-    }
-    res
-}
+// pub fn rvrb8(barr:&mut[buffer;8],s:f32)->f32{
+//     let mut res = 0.0;  
+//     for x in 0..8{
+//         barr[x].wr(s*0.9);
+//         res += barr[x].rd();
+//     }
+//     res
+// }
 pub fn rvrb(bv:&mut Vec<buffer>,s:f32)->f32{
     let mut rs:f32=0.0;
     for x in 0..bv.len()-1{
@@ -61,30 +106,23 @@ pub fn dlay(smp:f32,dur:usize)->f32{
 pub fn a() -> Vec<f32> {
     let mut v = vec![];
     let dur = sectosample(0.5) as usize;
-    let mut r1 = initrvrb8(dur);
-    let mut rv = 0.0;
-    let mut fil= buffer::new(dur,5);
-    let mut del= buffer::new(dur,400);
-    let mut d2l= buffer::new(dur,400);
+    let frm = 1.0/44100.0;    
+    let mut fir = buffer::new(dur,4);
     for x in 0..dur {
         let i = x as f32;
         let s = 44100.0;
         let t = i/s;
-        let fd = del.rd();
-        let f2 = d2l.rd();
-        let fi = fil.rd();
-        // let c = xp(0.2,t)*400.0+2.0;
-        // let c = tri(t,20.0)*10.0+1.0;
-        let c = (0.5*t*tau).sin()*20.0+1.0;
-        let d = (0.7*t*tau).sin()*10.0+0.5;
-        // let f1 = noise(t,0.04,0.0,0.3)*xp(7.0,t%2.0)+fd;
-        let f1 = fm(t,1.0,440.0)*0.1+(fd+f2)*0.5;
-        del.varsize(c as usize);
-        del.wr(f1*0.99);
-        del.varsize(d as usize);
-        d2l.wr(f1*0.99);
+        // let c = ((t*20.0).sin()+1.0)*20000.0;
+        // let c = (tri(t,200.0)+1000.0)*200.0;
+        // let c = xp(8.0,t%2.0)*20000.0;
+        let sq = square(t,880.0,0.05,0.0,0.2)+fir.rd();
+        fir.wr(sq*0.99);
+        // fir.varsize(c as usize);
+        // del.wr(f1*0.99);
+        // del.varsize(d as usize);
+        // d2l.wr(f1*0.99);
         // fil.wr(fd);
-        v.push(f1);
+        v.push(sq);
     }
     v
 }

@@ -1,12 +1,14 @@
 #![allow(non_camel_case_types,unused_imports)]
 #![allow(non_upper_case_globals)]
 #![allow(dead_code)]
+use bqn::bqntosound;
 use rand::SeedableRng;
 use rodio::{Sink, self, buffer::SamplesBuffer, OutputStream};
 use pest::*;
 use pest_derive::*;
 pub mod dsp;
 pub mod funk;
+pub mod bqn;
 use crate::{dsp::*, funk::*};
 const sff:f32=44100.0;
 const fsf:f32 = 1.0/sff;
@@ -26,8 +28,9 @@ fn main() {
     //     let xf = x as f32;
     //     w.push(s(xf/sff,dur as f32,x as f32,&mut rng,&mut bv));
     // }
+    let b:Vec<f32> = bqntosound();
     let r = a();
-    let s = SamplesBuffer::new(1,sff as u32,r);
+    let s = SamplesBuffer::new(1,sff as u32,b);
     sink.append(s);
     sink.sleep_until_end();
 }

@@ -169,6 +169,17 @@ pub fn sine(t:f32,f:f32,d:f32,s:f32,a:f32)->f32{
         (tau*t*f).sin()*a
     }
 }
+pub fn square(t:f32,f:f32,d:f32,s:f32,a:f32)->f32{
+    if t*44100.0>sectosample(d+s){
+        0.0
+    }
+    else if t*44100.0<sectosample(s){
+        0.0
+    }
+    else{
+        (tau*t*f).sin().signum()*a
+    }
+}
 pub fn sampletosec(sample:f32)->f32{
     (sample/44100.0)/16.0
 }
